@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import api, { csrf } from '../api'
 
 const currentUser = ref(null)
@@ -8,7 +8,7 @@ export function useAuth() {
   async function fetchUser() {
     try {
       loadingUser.value = true
-      const { data } = await api.get('/api/user')
+      const { data } = await api.get('/api/user') // ← trae roles
       currentUser.value = data
       return data
     } catch {
@@ -19,12 +19,11 @@ export function useAuth() {
     }
   }
 
-async function login(email, password) {
-  await csrf()
-  await api.post('/login', { email, password })
-  return fetchUser()
-}
-
+  async function login(email, password) {
+    await csrf()
+    await api.post('/login', { email, password })
+    return fetchUser()
+  }
 
   async function logout() {
     await csrf()
@@ -32,7 +31,13 @@ async function login(email, password) {
     currentUser.value = null
   }
 
-  const isAuthenticated = () => !!currentUser.value
+  const isAuthenticated = computed(() => !!currentUser.value)
 
-  return { currentUser, loadingUser, fetchUser, login, logout, isAuthenticated }
+  // ✅ Comprueba si el usuario tiene un rol con name === 'admin'
+  const isAdmin = computed(() =>
+    Array.isArray(currentUser.value?.roles) &&
+    currentUser.value.roles.some(r => r.name === 'admin')
+  )
+
+  return { currentUser, loadingUser, fetchUser, login, logout, isAuthenticated, isAdmin }
 }

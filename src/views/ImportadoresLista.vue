@@ -1,8 +1,15 @@
 <template>
+
   <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h3 class="mb-0">Importadores</h3>
-      <input v-model="q" class="form-control" style="max-width:260px" placeholder="Buscar por nombre o DNI" @input="debouncedLoad" />
+      <h3 class="fw-bold text-primary mb-0"><i class="fas fa-boxes me-2"></i>Gestión de Importadores</h3>
+        <div class="d-flex gap-2">
+            <router-link to="/importadores/nuevo" class="btn btn-success">
+            + Nuevo importador
+            </router-link>
+            <input v-model="q" class="form-control" style="max-width:260px"
+                placeholder="Buscar por nombre o DNI" @input="debouncedLoad" />
+        </div>
     </div>
 
     <div class="card shadow-sm">
