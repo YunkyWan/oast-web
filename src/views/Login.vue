@@ -13,7 +13,7 @@
             <input v-model="password" type="password" class="form-control" required autocomplete="current-password" />
           </div>
           <button class="btn btn-primary w-100" :disabled="loading">{{ loading ? 'Entrando...' : 'Entrar' }}</button>
-          <p v-if="error" class="text-danger mt-3">{{ error }}</p>
+          <p v-if="errorMessage" class="text-danger mt-3">{{ errorMessage }}</p>
         </form>
       </div>
     </div>
@@ -53,10 +53,3 @@ async function onSubmit() {
   }
 }
 </script>
-
-<template>
-  <form @submit.prevent="onSubmit">
-    <!-- campos email, password, etc. -->
-    <p v-if="errorMessage">{{ errorMessage }}</p>
-  </form>
-</template>
