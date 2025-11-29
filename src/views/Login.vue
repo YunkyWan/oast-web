@@ -28,14 +28,10 @@ import { useRoute, useRouter } from 'vue-router'
 const route = useRoute()
 const router = useRouter()
 const { login } = useAuth()
-
 const email = ref('admin@oast.local')
 const password = ref('123456')
 const loading = ref(false)
 const errorMessage = ref('')
-const router = useRouter()
-const route = useRoute()
-const { login } = useAuth()
 
 async function onSubmit() {
   loading.value = true
