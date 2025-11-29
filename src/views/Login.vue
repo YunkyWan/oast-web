@@ -32,18 +32,31 @@ const { login } = useAuth()
 const email = ref('admin@oast.local')
 const password = ref('123456')
 const loading = ref(false)
-const error = ref('')
+const errorMessage = ref('')
+const router = useRouter()
+const route = useRoute()
+const { login } = useAuth()
 
-const onSubmit = async () => {
-  error.value = ''
+async function onSubmit() {
   loading.value = true
+  errorMessage.value = ''
+
   try {
-    await login(email.value, password.value)
-    router.replace(route.query.redirect || '/importadores')
-  } catch (e) {
-    error.value = 'Credenciales inválidas.'
+    await login(email.value, password.value)   // ⬅️ usa useAuth.login
+    const redirect = route.query.redirect || '/importadores'
+    router.push(redirect)
+  } catch (error) {
+    errorMessage.value = 'Credenciales incorrectas o error de autenticación'
+    console.error(error)
   } finally {
     loading.value = false
   }
 }
 </script>
+
+<template>
+  <form @submit.prevent="onSubmit">
+    <!-- campos email, password, etc. -->
+    <p v-if="errorMessage">{{ errorMessage }}</p>
+  </form>
+</template>
