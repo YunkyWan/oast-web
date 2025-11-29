@@ -1,4 +1,3 @@
-// src/composables/useAuth.js
 import { ref, computed } from 'vue'
 import api, { csrf } from '../api'
 
@@ -21,38 +20,29 @@ export function useAuth() {
   }
 
   async function login(email, password) {
-    // 1. Pedimos la cookie CSRF a la API
+    // 1. Pide la cookie CSRF
     await csrf()
 
-    // 2. Leemos el token de la cookie XSRF-TOKEN
-    const cookie = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('XSRF-TOKEN='))
+    // 2. Leer el token de la cookie XSRF-TOKEN
+    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/)
+    const headers = {}
 
-    if (!cookie) {
-      console.error('No se encontró la cookie XSRF-TOKEN')
-      throw new Error('CSRF token not found')
+    if (match) {
+      try {
+        headers['X-XSRF-TOKEN'] = decodeURIComponent(match[1])
+      } catch {
+        headers['X-XSRF-TOKEN'] = match[1]
+      }
     }
 
-    let token = cookie.split('=')[1]
-    try {
-      token = decodeURIComponent(token)
-    } catch {
-      // si falla decodeURIComponent usamos el valor tal cual
-    }
-
-    // 3. Hacemos el login enviando explícitamente el header X-XSRF-TOKEN
+    // 3. Hacer el login enviando el header explícitamente
     await api.post(
       '/login',
       { email, password },
-      {
-        headers: {
-          'X-XSRF-TOKEN': token,
-        },
-      },
+      { headers }
     )
 
-    // 4. Si el login funciona, pedimos los datos del usuario
+    // 4. Si todo va bien, recuperar el usuario
     return fetchUser()
   }
 
@@ -65,16 +55,8 @@ export function useAuth() {
 
   const isAdmin = computed(() =>
     Array.isArray(currentUser.value?.roles) &&
-    currentUser.value.roles.some(r => r.name === 'admin'),
+    currentUser.value.roles.some(r => r.name === 'admin')
   )
 
-  return {
-    currentUser,
-    loadingUser,
-    fetchUser,
-    login,
-    logout,
-    isAuthenticated,
-    isAdmin,
-  }
+  return { currentUser, loadingUser, fetchUser, login, logout, isAuthenticated, isAdmin }
 }
