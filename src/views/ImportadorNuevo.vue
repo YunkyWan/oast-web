@@ -3,7 +3,8 @@
   <main class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h3 class="fw-bold text-primary mb-0">
-        <i class="fas fa-user-plus me-2"></i>Nuevo Importador
+        <i class="fas fa-user-plus me-2"></i>
+        {{ isEdit ? 'Editar importador' : 'Nuevo importador' }}
       </h3>
 
       <div>
@@ -24,12 +25,6 @@
         <div class="row g-3">
           <div class="col-md-3">
             <div class="form-outline" data-mdb-input-init>
-              <input v-model.number="f.CLAVIM" type="number" id="codigo" class="form-control" required />
-              <label class="form-label" for="codigo">Código</label>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="form-outline" data-mdb-input-init>
               <input v-model="fechaAlta" type="date" id="fechaAlta" class="form-control" />
               <label class="form-label" for="fechaAlta">Fecha Alta</label>
             </div>
@@ -46,23 +41,29 @@
             </div>
           </div>
 
-        <div class="col-md-3">
-        <div class="form-outline" data-mdb-select-init>
-            <select v-model="f.PAGIMP" id="gestionNfu" class="form-select">
-            <option value="">-</option>
-            <option value="S">Sí</option>
-            <option value="N">No</option>
-            </select>
-            <label class="form-label" for="gestionNfu">Gestión N.F.U.</label>
-        </div>
-        </div>
+          <div class="col-md-3">
+            <div class="form-outline" data-mdb-select-init>
+              <select v-model="f.PAGIMP" id="gestionNfu" class="form-select">
+                <option value="">-</option>
+                <option value="S">Sí</option>
+                <option value="N">No</option>
+              </select>
+              <label class="form-label" for="gestionNfu">Gestión N.F.U.</label>
+            </div>
+          </div>
+          <div class="col-lg-3">
+            <div class="form-outline" data-mdb-input-init>
+              <input v-model="f.EORIMP" id="eori" class="form-control" />
+              <label class="form-label" for="eori">EORI</label>
+            </div>
+          </div>        
 
         </div>
 
         <!-- === Datos Identificativos === -->
         <SectionTitle icon="user">Datos Identificativos</SectionTitle>
         <div class="row g-3">
-          <div class="col-lg-6">
+          <div class="col-lg-9">
             <div class="form-outline" data-mdb-input-init>
               <input v-model="f.NOMIMP" id="nombre" class="form-control" :class="error.NOMIMP && 'is-invalid'" required />
               <label class="form-label" for="nombre">Nombre *</label>
@@ -80,12 +81,7 @@
               </div>
             </div>
           </div>
-          <div class="col-lg-3">
-            <div class="form-outline" data-mdb-input-init>
-              <input v-model="f.EORIMP" id="eori" class="form-control" />
-              <label class="form-label" for="eori">EORI</label>
-            </div>
-          </div>
+
         </div>
 
         <div class="row g-3 mt-1">
@@ -214,19 +210,21 @@
 </template>
 
 <script setup>
-import { reactive, ref, watchEffect, onMounted, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { reactive, ref, watchEffect, onMounted, nextTick, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import api from '../api'
 import * as mdb from 'mdb-ui-kit'
-import Navbar from '../components/Navbar.vue'
 import SectionTitle from '../components/SectionTitle.vue'
 
 const router = useRouter()
+const route = useRoute()
+const id = route.params.id
+const isEdit = computed(() => !!id)
 const saving = ref(false)
 const error = ref('')
 
 const f = reactive({
-  CLAVIM: null, NOMIMP: '', DNIIMP: '', EORIMP: 'ES',
+  NOMIMP: '', DNIIMP: '', EORIMP: 'ES',
   EXEIMP: '', PAGIMP: '',
   TELFMP: null, TELMMP: null, CORRMP: '',
   CALIMP: 0, NUMIMP: '', BLO1MP: '', POR1MP: '',
@@ -266,9 +264,11 @@ const initMdbInputs = async () => {
     })
 }
 
-onMounted(() => {
-  initMdbInputs()
+onMounted(async () => {
+  await loadIfEdit()
+  await initMdbInputs()
 })
+
 
 function validateForm() {
   const e = {}
@@ -309,18 +309,70 @@ function validateForm() {
   return Object.keys(e).length === 0
 }
 
+async function loadIfEdit() {
+  if (!isEdit.value) return
+
+  try {
+    const { data } = await api.get(`/api/importadores/${id}`)
+
+    // Rellenamos el objeto reactivo f con los valores que vienen de la API
+    Object.assign(f, {
+      NOMIMP: data.NOMIMP ?? '',
+      DNIIMP: data.DNIIMP ?? '',
+      EORIMP: data.EORIMP ?? '',
+      EXEIMP: data.EXEIMP ?? '',
+      PAGIMP: data.PAGIMP ?? '',
+      TELFMP: data.TELFMP ?? null,
+      TELMMP: data.TELMMP ?? null,
+      CORRMP: data.CORRMP ?? '',
+      CALIMP: data.CALIMP ?? null,
+      NUMIMP: data.NUMIMP ?? '',
+      BLO1MP: data.BLO1MP ?? '',
+      POR1MP: data.POR1MP ?? '',
+      NOMRAP: data.NOMRAP ?? '',
+      DNIRAP: data.DNIRAP ?? '',
+      TIREMP: data.TIREMP ?? '',
+      TITUMP: data.TITUMP ?? '',
+      DENCMP: data.DENCMP ?? '',
+      OBSEMP: data.OBSEMP ?? '',
+      DIALMP: data.DIALMP ?? 0,
+      MEALMP: data.MEALMP ?? 0,
+      AÑALMP: data.AÑALMP ?? 0
+    })
+
+    // Construimos la fechaAlta (YYYY-MM-DD) a partir de los campos de fecha
+    if (data.DIALMP && data.MEALMP && data.AÑALMP) {
+      const day = String(data.DIALMP).padStart(2, '0')
+      const month = String(data.MEALMP).padStart(2, '0')
+      const year = data.AÑALMP
+      fechaAlta.value = `${year}-${month}-${day}`
+    } else {
+      fechaAlta.value = ''
+    }
+  } catch (e) {
+    error.value = 'No se pudo cargar el importador para edición.'
+  }
+}
+
 async function onSubmit() {
   try {
     error.value = ''
     saving.value = true
-    if (!validateForm()) {
+
+    if (!validateForm()) { // si ya tienes validateForm
       saving.value = false
-      // Opcional: subir al principio del formulario
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
-   }
+    }
+
     const payload = { ...f }
-    await api.post('/api/importadores', payload)
+
+    if (isEdit.value) {
+      await api.put(`/api/importadores/${id}`, payload)
+    } else {
+      await api.post('/api/importadores', payload)
+    }
+
     router.push('/importadores')
   } catch (e) {
     error.value = e.response?.data?.message || 'No se pudo guardar el importador.'
@@ -328,4 +380,5 @@ async function onSubmit() {
     saving.value = false
   }
 }
+
 </script>

@@ -14,6 +14,7 @@ const router = createRouter({
     // App (auth requerida por defecto)
     { path: '/importadores', name: 'importadores', component: ImportadoresLista, meta: { requiresAuth: true } },
     { path: '/importadores/nuevo', name: 'importador-nuevo', component: ImportadorNuevo, meta: { requiresAuth: true } },
+    { path: '/importadores/:id/editar', name: 'editar-importador', component: ImportadorNuevo, meta: { requiresAuth: true } },
     { path: '/importadores/:id', name: 'importador', component: ImportadorDetalle, meta: { requiresAuth: true } },
 
     // Usuarios (solo admin)
