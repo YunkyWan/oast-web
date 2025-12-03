@@ -36,19 +36,21 @@ export function useAuth() {
     }
 
     // 3. Hacer el login enviando el header explícitamente
-    await api.post(
-      '/login',
-      { email, password },
-      { headers }
-    )
+    await api.post('/login', { email, password }, { headers })
 
     // 4. Si todo va bien, recuperar el usuario
     return fetchUser()
   }
 
   async function logout() {
-    await api.post('/logout')
-    currentUser.value = null
+    try {
+      await api.post('/logout')
+    } catch (e) {
+      // No bloqueamos el logout del frontend por errores del backend
+      console.warn('Error en /logout, se limpia sesión igualmente', e)
+    } finally {
+      currentUser.value = null
+    }
   }
 
   const isAuthenticated = computed(() => !!currentUser.value)

@@ -65,9 +65,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick, onUpdated } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import Navbar from '../components/Navbar.vue'
 import api from '../api'
 import * as mdb from 'mdb-ui-kit'
 
@@ -82,7 +81,7 @@ const error = ref('')
 
 async function loadIfEdit() {
   if (!isEdit.value) return
-  const { data } = await api.get('/api/usuarios') // simple: reutiliza listado y encuentra
+  const { data } = await api.get('/api/usuarios')
   const u = data.find(x => x.id == id)
   if (u) {
     form.value.name = u.name
@@ -93,19 +92,27 @@ async function loadIfEdit() {
 
 const initMDB = async () => {
   await nextTick()
-  if (mdb?.initMDB) mdb.initMDB({ Input: mdb.Input, Ripple: mdb.Ripple })
-  // fallback label flotante para <select>
-  const wrapper = document.querySelector('[data-mdb-select-init].form-outline')
-  if (wrapper) {
-    const sel = wrapper.querySelector('select.form-select')
-    const lab = wrapper.querySelector('label.form-label')
-    const sync = () => lab?.classList.toggle('active', !!sel?.value)
-    sel?.addEventListener('change', sync)
-    sel && sync()
+
+  document.querySelectorAll('.form-outline').forEach((formOutline) => {
+    if (!formOutline.dataset.mdbInitialized) {
+      new mdb.Input(formOutline).init()
+      formOutline.dataset.mdbInitialized = 'true'
+    }
+  })
+
+  const selectWrapper = document.querySelector('[data-mdb-select-init].form-outline')
+  if (selectWrapper) {
+    const sel = selectWrapper.querySelector('select.form-select')
+    if (sel && !sel.dataset.mdbSelect) {
+      new mdb.Select(sel)
+    }
   }
 }
-onMounted(async () => { await loadIfEdit(); await initMDB() })
-onUpdated(initMDB)
+
+onMounted(async () => {
+  await loadIfEdit()
+  await initMDB()
+})
 
 async function onSubmit() {
   try {

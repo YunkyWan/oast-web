@@ -64,14 +64,20 @@
         <div class="row g-3">
           <div class="col-lg-6">
             <div class="form-outline" data-mdb-input-init>
-              <input v-model="f.NOMIMP" id="nombre" class="form-control" />
-              <label class="form-label" for="nombre">Nombre</label>
+              <input v-model="f.NOMIMP" id="nombre" class="form-control" :class="error.NOMIMP && 'is-invalid'" required />
+              <label class="form-label" for="nombre">Nombre *</label>
+              <div v-if="error.NOMIMP" class="invalid-feedback">
+                {{ error.NOMIMP }}
+              </div>
             </div>
           </div>
           <div class="col-lg-3">
             <div class="form-outline" data-mdb-input-init>
-              <input v-model="f.DNIIMP" id="dni" class="form-control" />
-              <label class="form-label" for="dni">CIF/NIF</label>
+              <input v-model="f.DNIIMP" id="dni" class="form-control" :class="error.DNIIMP && 'is-invalid'" required />
+              <label class="form-label" for="dni">CIF/NIF *</label>
+              <div v-if="error.DNIIMP" class="invalid-feedback">
+                {{ error.DNIIMP }}
+              </div>
             </div>
           </div>
           <div class="col-lg-3">
@@ -85,20 +91,23 @@
         <div class="row g-3 mt-1">
           <div class="col-lg-3">
             <div class="form-outline" data-mdb-input-init>
-              <input v-model.number="f.TELFMP" type="number" id="telfijo" class="form-control" />
+              <input v-model="f.TELFMP" type="tel" id="telfijo" class="form-control" />
               <label class="form-label" for="telfijo">Teléfono Fijo</label>
             </div>
           </div>
           <div class="col-lg-3">
             <div class="form-outline" data-mdb-input-init>
-              <input v-model.number="f.TELMMP" type="number" id="telmovil" class="form-control" />
+              <input v-model="f.TELMMP" type="tel" id="telmovil" class="form-control" />
               <label class="form-label" for="telmovil">Teléfono Móvil</label>
             </div>
           </div>
           <div class="col-lg-6">
             <div class="form-outline" data-mdb-input-init>
-              <input v-model="f.CORRMP" type="email" id="correo" class="form-control" />
-              <label class="form-label" for="correo">Correo Electrónico</label>
+              <input v-model="f.CORRMP" type="email" id="correo" class="form-control" :class="error.CORRMP && 'is-invalid'" required />
+              <label class="form-label" for="correo">Correo Electrónico *</label>
+              <div v-if="error.CORRMP" class="invalid-feedback">
+                {{ error.CORRMP }}
+              </div>
             </div>
           </div>
         </div>
@@ -137,14 +146,20 @@
         <div class="row g-3">
           <div class="col-lg-5">
             <div class="form-outline" data-mdb-input-init>
-              <input v-model="f.NOMRAP" id="nomRepr" class="form-control" />
-              <label class="form-label" for="nomRepr">Nombre</label>
+              <input v-model="f.NOMRAP" id="nomRepr" class="form-control" :class="error.NOMRAP && 'is-invalid'" required />
+              <label class="form-label" for="nomRepr">Nombre *</label>
+              <div v-if="error.NOMRAP" class="invalid-feedback">
+                {{ error.NOMRAP }}
+              </div>
             </div>
           </div>
           <div class="col-lg-3">
             <div class="form-outline" data-mdb-input-init>
-              <input v-model="f.DNIRAP" id="dniRepr" class="form-control" />
-              <label class="form-label" for="dniRepr">CIF/NIF</label>
+              <input v-model="f.DNIRAP" id="dniRepr" class="form-control" :class="error.DNIRAP && 'is-invalid'" required />
+              <label class="form-label" for="dniRepr">CIF/NIF *</label>
+              <div v-if="error.DNIRAP" class="invalid-feedback">
+                {{ error.DNIRAP }}
+              </div>              
             </div>
           </div>
           <div class="col-lg-2">
@@ -194,48 +209,35 @@
       </div>
     </div>
 
-    <p v-if="error" class="text-danger mt-3">{{ error }}</p>
   </main>
   
 </template>
 
 <script setup>
-import { reactive, ref, watchEffect, onMounted, onUpdated } from 'vue'
+import { reactive, ref, watchEffect, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import Navbar from '../components/Navbar.vue'
 import api from '../api'
-import SectionTitle from '../components/SectionTitle.vue'
-
-// Importa *todo* el paquete en un objeto llamado 'mdb'
 import * as mdb from 'mdb-ui-kit'
-
-// Inicialización cuando el DOM del componente ya existe
-const initMdbInputs = () => {
-  // Llama a initMDB desde el namespace 'mdb' y pásale los componentes
-  mdb.initMDB({ 
-    Input: mdb.Input, 
-    Ripple: mdb.Ripple, 
-    Select: mdb.Select 
-  })
-}
-onMounted(initMdbInputs)
-onUpdated(initMdbInputs)
+import Navbar from '../components/Navbar.vue'
+import SectionTitle from '../components/SectionTitle.vue'
 
 const router = useRouter()
 const saving = ref(false)
 const error = ref('')
 
 const f = reactive({
-  CLAVIM: null, NOMIMP: '', DNIIMP: '', EORIMP: '',
+  CLAVIM: null, NOMIMP: '', DNIIMP: '', EORIMP: 'ES',
   EXEIMP: '', PAGIMP: '',
-  TELFMP: 0, TELMMP: 0, CORRMP: '',
+  TELFMP: null, TELMMP: null, CORRMP: '',
   CALIMP: 0, NUMIMP: '', BLO1MP: '', POR1MP: '',
   NOMRAP: '', DNIRAP: '', TIREMP: '', TITUMP: '',
   DENCMP: '', OBSEMP: '',
   DIALMP: 0, MEALMP: 0, AÑALMP: 0
 })
 
+// Fecha de alta “amigable” que rellena los campos descompuestos
 const fechaAlta = ref('')
+
 watchEffect(() => {
   if (!fechaAlta.value) return
   const d = new Date(fechaAlta.value)
@@ -244,10 +246,79 @@ watchEffect(() => {
   f.AÑALMP = d.getUTCFullYear()
 })
 
+const initMdbInputs = async () => {
+  await nextTick()
+
+  document.querySelectorAll('.form-outline').forEach((wrapper) => {
+    if (!wrapper.dataset.mdbInitialized) {
+      // Cada .form-outline envuelve un input o textarea
+      new mdb.Input(wrapper).init()
+      wrapper.dataset.mdbInitialized = 'true'
+    }
+  })
+
+  document
+    .querySelectorAll('[data-mdb-select-init] select.form-select')
+    .forEach((sel) => {
+      if (!sel.dataset.mdbSelect) {
+        new mdb.Select(sel)
+      }
+    })
+}
+
+onMounted(() => {
+  initMdbInputs()
+})
+
+function validateForm() {
+  const e = {}
+
+  // Obligatorios
+  if (!f.NOMIMP?.trim()) {
+    e.NOMIMP = 'El nombre del importador es obligatorio.'
+  }
+
+  if (!f.DNIIMP?.trim()) {
+    e.DNIIMP = 'El CIF/NIF del importador es obligatorio.'
+  }
+
+  if (!f.NOMRAP?.trim()) {
+    e.NOMRAP = 'El nombre del representante es obligatorio.'
+  }
+
+  if (!f.DNIRAP?.trim()) {
+    e.DNIRAP = 'El CIF/NIF del representante es obligatorio.'
+  }
+
+  if (!f.CORRMP?.trim()) {
+    e.CORRMP = 'El correo electrónico es obligatorio.'
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.CORRMP)) {
+    e.CORRMP = 'El correo electrónico no tiene un formato válido.'
+  }
+
+  // CALIMP: smallint (a efectos prácticos, entero entre 0 y 32767)
+  if (f.CALIMP !== null && f.CALIMP !== '' && f.CALIMP !== undefined) {
+    if (!Number.isInteger(f.CALIMP)) {
+      e.CALIMP = 'La clave de calle debe ser un número entero.'
+    } else if (f.CALIMP < 0 || f.CALIMP > 32767) {
+      e.CALIMP = 'La clave de calle debe estar entre 0 y 32767.'
+    }
+  }
+
+  error.value = e
+  return Object.keys(e).length === 0
+}
+
 async function onSubmit() {
   try {
     error.value = ''
     saving.value = true
+    if (!validateForm()) {
+      saving.value = false
+      // Opcional: subir al principio del formulario
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+   }
     const payload = { ...f }
     await api.post('/api/importadores', payload)
     router.push('/importadores')

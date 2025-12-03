@@ -21,6 +21,7 @@
               <th>Nombre</th>
               <th>DNI</th>
               <th>Teléfono</th>
+              <th>Email</th>
               <th></th>
             </tr>
           </thead>
@@ -30,6 +31,7 @@
               <td>{{ imp.NOMIMP?.trim() }}</td>
               <td>{{ imp.DNIIMP?.trim() }}</td>
               <td>{{ imp.TELFMP || imp.TELMMP }}</td>
+              <td>{{ imp.CORRMP?.trim() }}</td>
               <td><router-link class="btn btn-outline-primary btn-sm" :to="`/importadores/${imp.CLAVIM}`">Ver</router-link></td>
             </tr>
           </tbody>

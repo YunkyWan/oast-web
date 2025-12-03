@@ -1,23 +1,115 @@
 <template>
   <div class="container py-4">
-    <Navbar />
+
+    <!-- Botón Volver -->
     <div class="mb-3">
-      <router-link to="/importadores" class="btn btn-link">&larr; Volver</router-link>
+      <router-link to="/importadores" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-arrow-left me-1"></i> Volver
+      </router-link>
     </div>
 
-    <div v-if="imp" class="card shadow-sm">
+    <!-- Cargando -->
+    <div v-if="!imp && !error" class="text-center py-5 text-muted">
+      <div class="spinner-border text-primary mb-3" role="status"></div>
+      <p>Cargando datos del importador...</p>
+    </div>
+
+    <!-- Error -->
+    <p v-if="error" class="text-danger mt-3 fw-semibold">
+      {{ error }}
+    </p>
+
+    <!-- Detalle del importador -->
+    <div v-if="imp" class="card shadow-3 border-light">
+
+      <!-- Header atractivo -->
+      <div class="card-header bg-primary text-white py-3 d-flex align-items-center">
+        <i class="fas fa-user me-2"></i>
+        <h5 class="mb-0 fw-semibold">
+          {{ imp.NOMIMP?.trim() }}
+        </h5>
+      </div>
+
       <div class="card-body">
-        <h4 class="card-title">{{ imp.NOMIMP?.trim() }}</h4>
-        <p class="mb-1"><strong>DNI:</strong> {{ imp.DNIIMP?.trim() }}</p>
-        <p class="mb-1"><strong>Teléfono:</strong> {{ imp.TELFMP || imp.TELMMP }}</p>
-        <p class="mb-0"><strong>Clave:</strong> {{ imp.CLAVIM }}</p>
+
+        <!-- Sección Información general -->
+        <h6 class="text-primary mb-3">
+          <i class="fas fa-info-circle me-1"></i> Información general
+        </h6>
+
+        <div class="row mb-4">
+          <div class="col-md-4 mb-3">
+            <p class="text-muted mb-1 small">Fecha de alta</p>
+            <p class="fw-semibold">
+              {{ imp.DIALMP }}/{{ imp.MEALMP }}/{{ imp.AÑALMP }}
+            </p>
+          </div>
+
+          <div class="col-md-4 mb-3">
+            <p class="text-muted mb-1 small">DNI</p>
+            <p class="fw-semibold">{{ imp.DNIIMP?.trim() }}</p>
+          </div>
+
+          <div class="col-md-4 mb-3">
+            <p class="text-muted mb-1 small">Denominación Comercial</p>
+            <p class="fw-semibold">{{ imp.DENCMP?.trim() }}</p>
+          </div>
+        </div>
+
+        <!-- Sección Contacto -->
+        <h6 class="text-primary mb-3">
+          <i class="fas fa-phone-alt me-1"></i> Información de contacto
+        </h6>
+
+        <div class="row mb-4">
+
+          <div class="col-md-4 mb-3">
+            <p class="text-muted mb-1 small">Teléfono fijo</p>
+            <p class="fw-semibold">{{ imp.TELFMP }}</p>
+          </div>
+
+          <div class="col-md-4 mb-3">
+            <p class="text-muted mb-1 small">Móvil</p>
+            <p class="fw-semibold">{{ imp.TELMMP }}</p>
+          </div>
+
+          <div class="col-md-4 mb-3">
+            <p class="text-muted mb-1 small">Email</p>
+            <p class="fw-semibold">{{ imp.CORRMP?.trim() }}</p>
+          </div>
+        </div>
+
+        <!-- Sección Representante -->
+        <h6 class="text-primary mb-3">
+          <i class="fas fa-user-tie me-1"></i> Representante
+        </h6>
+
+        <div class="row mb-4">
+          <div class="col-md-6 mb-3">
+            <p class="text-muted mb-1 small">Nombre representante</p>
+            <p class="fw-semibold">{{ imp.NOMRAP?.trim() }}</p>
+          </div>
+
+          <div class="col-md-6 mb-3">
+            <p class="text-muted mb-1 small">DNI representante</p>
+            <p class="fw-semibold">{{ imp.DNIRAP?.trim() }}</p>
+          </div>
+        </div>
+
+        <!-- Dirección (si aplica) -->
+        <!-- Puedes activarlo si tienes datos completos -->
+        <!--
+        <h6 class="text-primary mb-3">
+          <i class="fas fa-map-marked-alt me-1"></i> Dirección
+        </h6>
+        <p class="fw-semibold">{{ imp.CALIMP?.trim() }}</p>
+        -->
+
       </div>
     </div>
-
-    <p v-else class="text-muted">Cargando...</p>
-    <p v-if="error" class="text-danger mt-3">{{ error }}</p>
   </div>
 </template>
+
 
 <script setup>
 import { ref, onMounted } from 'vue'

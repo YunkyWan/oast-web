@@ -75,11 +75,9 @@ const user = computed(() => currentUser.value)
 
 async function logout() {
   try {
-    await api.post('/logout')
     await logoutAuth()
-    router.push('/login')
-  } catch (e) {
-    console.error('Error al cerrar sesión', e)
+  } finally {
+    router.replace('/login')
   }
 }
 </script>
