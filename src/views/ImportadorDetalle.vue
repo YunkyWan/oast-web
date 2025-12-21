@@ -105,18 +105,8 @@
 
             <!-- Subida solo admin -->
             <div v-if="isAdmin" class="d-flex align-items-center gap-2">
-              <input
-                ref="fileInput"
-                type="file"
-                class="form-control form-control-sm"
-                @change="onFileSelected"
-                style="max-width: 280px"
-              />
-              <button
-                class="btn btn-sm btn-primary"
-                :disabled="uploading || !selectedFile"
-                @click="uploadFile"
-              >
+              <input ref="fileInput" type="file" class="form-control form-control-sm" @change="onFileSelected" style="max-width: 280px" />
+              <button class="btn btn-sm btn-primary" :disabled="uploading || !selectedFile" @click="uploadFile">
                 <i class="fas fa-upload me-1"></i>
                 {{ uploading ? 'Subiendo...' : 'Subir' }}
               </button>
@@ -148,7 +138,7 @@
                   </thead>
                   <tbody>
                     <tr v-for="d in docs" :key="d.id">
-                      <td class="fw-semibold">{{ d.nombre_original }}</td>
+                      <td class="fw-semibold"><a href="#" class="text-decoration-none" @click.prevent="openDoc(d)">{{ d.nombre_original }}</a></td>
                       <td class="d-none d-md-table-cell">{{ d.mime }}</td>
                       <td class="d-none d-md-table-cell text-end">{{ formatBytes(d.tamano) }}</td>
                       <td class="text-end">
@@ -156,12 +146,7 @@
                           <i class="fas fa-download"></i>
                         </button>
 
-                        <button
-                          v-if="isAdmin"
-                          class="btn btn-sm btn-outline-danger"
-                          :disabled="deletingId === d.id"
-                          @click="deleteDoc(d)"
-                        >
+                        <button v-if="isAdmin" class="btn btn-sm btn-outline-danger" :disabled="deletingId === d.id" @click="deleteDoc(d)">
                           <i class="fas fa-trash-alt"></i>
                         </button>
                       </td>
@@ -171,7 +156,7 @@
               </div>
 
               <small class="text-muted d-block mt-3">
-                Formatos permitidos: PDF e imágenes (JPG/PNG). Tamaño máximo recomendado: 10 MB.
+                Formatos permitidos: PDF e imágenes (JPG/PNG). Tamaño máximo permitido: 10 MB.
               </small>
             </div>
           </div>
@@ -296,9 +281,20 @@ async function downloadDoc(doc) {
     const { data } = await api.get(`/api/documentos/${doc.id}/download`)
     const url = data?.url
     if (!url) throw new Error('URL de descarga no disponible.')
-    window.open(url, '_blank', 'noopener')
+    window.open(url, '_self', 'noopener')
   } catch (e) {
     docsError.value = e.response?.data?.message || 'No se pudo descargar el documento.'
+  }
+}
+
+async function openDoc(doc) {
+  try {
+    const { data } = await api.get(`/api/documentos/${doc.id}/view`)
+    const url = data?.url
+    if (!url) throw new Error('URL de visualización no disponible.')
+    window.open(url, '_blank', 'noopener')
+  } catch (e) {
+    docsError.value = e.response?.data?.message || 'No se pudo abrir el documento.'
   }
 }
 
